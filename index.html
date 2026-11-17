@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ludoteca GeleiaHUB</title>
+<meta name="description" content="Ludoteca GeleiaHUB · UFLA">
+<style>
+  :root { --roxo:#472099; --fundo:#f4f1fb; --tinta:#111; }
+  html, body { margin:0; height:100%; background:var(--fundo); font-family:Roboto, Arial, sans-serif; color:var(--tinta); }
+  .tela { min-height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; padding:24px; box-sizing:border-box; text-align:center; }
+  .gota { width:46px; height:46px; border-radius:50% 50% 50% 8px; background:var(--roxo); transform:rotate(-45deg); animation:pula 1s ease-in-out infinite; }
+  @keyframes pula { 50% { transform:rotate(-45deg) translate(6px,-6px); opacity:.6; } }
+  h1 { margin:0; font-size:20px; color:var(--roxo); }
+  p { margin:0; max-width:360px; line-height:1.45; }
+  button { font:700 16px Roboto, Arial, sans-serif; padding:12px 22px; border:2px solid var(--tinta); border-radius:12px; background:var(--roxo); color:#fff; cursor:pointer; }
+  [hidden] { display:none !important; }
+</style>
+</head>
+<body>
+<div class="tela" id="carregando"><div class="gota" aria-hidden="true"></div><h1>Ludoteca GeleiaHUB</h1><p>Carregando…</p></div>
+<div class="tela" id="falhou" hidden><h1>Não foi possível carregar</h1><p>Confira a internet do celular e tente de novo. Se continuar, avise a equipe no balcão.</p><button type="button" id="denovo">Tentar de novo</button></div>
+<script>
+(function () {
+  var API = 'https://script.google.com/macros/s/AKfycbwhZBi3u2TlezNcpYHPsvEw775zLreTeWlFDtqEME0eCuQlhEqRxQQafIdNLmsiuxlCnQ/exec';
+
+  // Substitui o google.script.run das telas: chama o Apps Script sem cookies (sem conta Google).
+  function ponte(API) {
+    function pedir(corpo) {
+      return fetch(API, { method: 'POST', body: JSON.stringify(corpo), credentials: 'omit',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' } }).then(function (r) { return r.json(); });
+    }
+    function chamada(ok, falha, obj) {
+      return new Proxy({}, { get: function (_, nome) {
+        if (nome === 'withSuccessHandler') return function (f) { return chamada(f, falha, obj); };
+        if (nome === 'withFailureHandler') return function (f) { return chamada(ok, f, obj); };
+        if (nome === 'withUserObject') return function (o) { return chamada(ok, falha, o); };
+        if (typeof nome !== 'string' || nome === 'then') return undefined;
+        return function () {
+          var args = Array.prototype.slice.call(arguments);
+          pedir({ acao: 'run', fn: nome, args: args }).then(function (r) {
+            if (r && r.ok) { if (ok) ok(r.valor, obj); }
+            else if (falha) falha(new Error((r && r.erro) || 'Erro no servidor.'), obj);
+          }, function () { if (falha) falha(new Error('Sem conexão com o servidor. Tente de novo.'), obj); });
+        };
+      } });
+    }
+    window.google = window.google || {};
+    window.google.script = { run: chamada(null, null), host: { close: function () {}, setHeight: function () {} } };
+  }
+
+  var params = {};
+  new URLSearchParams(location.search).forEach(function (v, k) { params[k] = v; });
+
+  function carregar(tentativa) {
+    document.getElementById('falhou').hidden = true;
+    document.getElementById('carregando').hidden = false;
+    fetch(API, { method: 'POST', credentials: 'omit', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ acao: 'pagina', params: params }) })
+      .then(function (r) { return r.json(); })
+      .then(function (r) {
+        if (!r || !r.ok || !r.html) throw new Error((r && r.erro) || 'vazio');
+        var extra = '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+          '<script>(' + ponte.toString() + ')(' + JSON.stringify(API) + ');<\/script>';
+        var html = /<head[^>]*>/i.test(r.html) ? r.html.replace(/<head[^>]*>/i, function (m) { return m + extra; }) : extra + r.html;
+        document.open(); document.write(html); document.close();
+        if (r.titulo) document.title = r.titulo;
+      })
+      .catch(function () {
+        if (tentativa < 2) { setTimeout(function () { carregar(tentativa + 1); }, 800); return; }
+        document.getElementById('carregando').hidden = true;
+        document.getElementById('falhou').hidden = false;
+      });
+  }
+  document.getElementById('denovo').onclick = function () { carregar(0); };
+  carregar(0);
+})();
+</script>
+</body>
+</html>
