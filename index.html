@@ -2,33 +2,207 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Ludoteca GeleiaHUB</title>
-<meta name="description" content="Ludoteca GeleiaHUB · UFLA">
+<meta name="description" content="Carteirinha, cadastro, cardápio de jogos e ranking da Ludoteca do GeleiaHUB (UFLA).">
+<meta name="theme-color" content="#472099">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Ludoteca">
+<link rel="preconnect" href="https://script.google.com">
+<link href="https://fonts.googleapis.com/css2?family=Coda:wght@800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-  :root { --roxo:#472099; --fundo:#f4f1fb; --tinta:#111; }
-  html, body { margin:0; height:100%; background:var(--fundo); font-family:Roboto, Arial, sans-serif; color:var(--tinta); }
-  .tela { min-height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; padding:24px; box-sizing:border-box; text-align:center; }
-  .gota { width:46px; height:46px; border-radius:50% 50% 50% 8px; background:var(--roxo); transform:rotate(-45deg); animation:pula 1s ease-in-out infinite; }
-  @keyframes pula { 50% { transform:rotate(-45deg) translate(6px,-6px); opacity:.6; } }
-  h1 { margin:0; font-size:20px; color:var(--roxo); }
-  p { margin:0; max-width:360px; line-height:1.45; }
-  button { font:700 16px Roboto, Arial, sans-serif; padding:12px 22px; border:2px solid var(--tinta); border-radius:12px; background:var(--roxo); color:#fff; cursor:pointer; }
+  :root { --roxo:#472099; --verde:#7BFF66; --menta:#BFFBEF; --fundo:#F6F3FD; --tinta:#141414; --suave:#4A4A55; --erro:#B42318; }
+  * { box-sizing:border-box; }
+  html, body { margin:0; min-height:100%; }
+  body { background:var(--roxo); color:var(--tinta); font:16px/1.45 Roboto, Arial, sans-serif; -webkit-tap-highlight-color:transparent; }
   [hidden] { display:none !important; }
+  .wrap { max-width:520px; margin:0 auto; padding:calc(18px + env(safe-area-inset-top)) 16px calc(28px + env(safe-area-inset-bottom)); }
+  header.topo { display:flex; align-items:center; gap:14px; color:#fff; margin-bottom:18px; }
+  header.topo img { width:92px; height:auto; flex:none; }
+  header.topo h1 { font-family:Coda, Impact, sans-serif; font-weight:800; font-size:26px; line-height:1.05; margin:0; letter-spacing:.5px; }
+  header.topo p { margin:4px 0 0; font-size:14px; opacity:.85; }
+  .cartao { display:block; background:#fff; color:var(--tinta); text-decoration:none; border:3px solid var(--tinta); border-radius:18px;
+            box-shadow:5px 5px 0 var(--tinta); padding:16px 18px; margin-bottom:16px; }
+  a.cartao:active, button.cartao:active { transform:translate(3px,3px); box-shadow:2px 2px 0 var(--tinta); }
+  .cartao.verde { background:var(--verde); }
+  .cartao.menta { background:var(--menta); }
+  .cartao h2 { font-family:Coda, Impact, sans-serif; font-weight:800; font-size:22px; line-height:1.1; margin:0 0 4px; color:var(--roxo); }
+  .cartao.verde h2 { color:var(--tinta); }
+  .cartao p { margin:0; color:var(--suave); font-size:15px; }
+  .cartao .linha { display:flex; align-items:center; gap:14px; }
+  .cartao .linha svg { width:38px; height:38px; flex:none; }
+  .grade { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:16px; }
+  .grade .cartao { margin:0; padding:14px; }
+  .grade .cartao h2 { font-size:17px; }
+  .grade .cartao p { font-size:13px; }
+  .grade .cartao.largo { grid-column:1 / -1; }
+  .ic { display:block; width:34px; height:34px; margin-bottom:8px; }
+  .sair { display:block; text-align:center; color:#fff; font-size:14px; margin:-6px 0 18px; opacity:.9; }
+  .sair button { background:none; border:0; color:inherit; text-decoration:underline; font:inherit; cursor:pointer; padding:6px; }
+  .equipe { text-align:center; color:#fff; font-size:14px; margin-top:8px; opacity:.85; }
+  .equipe a { color:#fff; font-weight:700; margin:0 6px; }
+  .instalar { display:flex; align-items:center; gap:12px; }
+  .instalar b { display:block; font-size:16px; }
+  .instalar span { font-size:14px; color:var(--suave); }
+  .btn { display:inline-flex; justify-content:center; align-items:center; gap:8px; width:100%; min-height:52px; border:3px solid var(--tinta);
+         border-radius:14px; background:var(--roxo); color:#fff; font:700 17px Roboto, Arial, sans-serif; cursor:pointer; text-decoration:none; }
+  .btn.claro { background:#fff; color:var(--tinta); }
+  .btn.pequeno { width:auto; min-height:42px; padding:0 14px; font-size:15px; }
+  .btn:disabled { opacity:.6; cursor:wait; }
+  label { display:block; font-weight:700; margin:14px 0 6px; }
+  input { width:100%; min-height:52px; border:3px solid var(--tinta); border-radius:12px; padding:0 14px; font:500 18px Roboto, Arial, sans-serif; background:#fff; }
+  input:focus { outline:3px solid var(--verde); outline-offset:2px; }
+  input.codigo { letter-spacing:8px; font-size:26px; text-align:center; font-weight:700; }
+  .msg { margin:12px 0 0; font-size:15px; min-height:20px; }
+  .msg.erro { color:var(--erro); font-weight:700; }
+  .acoes { margin-top:16px; display:grid; gap:10px; }
+  .voltar { display:inline-flex; align-items:center; gap:6px; color:#fff; text-decoration:none; font-weight:700; margin-bottom:14px; }
+  .dica { font-size:14px; color:var(--suave); margin-top:14px; }
+  .dica a { color:var(--roxo); font-weight:700; }
+  .tela { min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; padding:24px; text-align:center; color:#fff; }
+  .gota { width:54px; height:54px; border-radius:50% 50% 50% 10px; background:var(--verde); border:3px solid var(--tinta); transform:rotate(-45deg); animation:pula 1s ease-in-out infinite; }
+  @keyframes pula { 50% { transform:rotate(-45deg) translate(7px,-7px); } }
+  .tela h1 { font-family:Coda, Impact, sans-serif; font-weight:800; font-size:24px; margin:0; }
+  .tela p { margin:0; max-width:340px; }
+  .tela .btn { max-width:280px; background:var(--verde); color:var(--tinta); }
 </style>
 </head>
 <body>
-<div class="tela" id="carregando"><div class="gota" aria-hidden="true"></div><h1>Ludoteca GeleiaHUB</h1><p>Carregando…</p></div>
-<div class="tela" id="falhou" hidden><h1>Não foi possível carregar</h1><p>Confira a internet do celular e tente de novo. Se continuar, avise a equipe no balcão.</p><button type="button" id="denovo">Tentar de novo</button></div>
+
+<!-- Tela inicial -->
+<main class="wrap" id="v-inicio" hidden>
+  <header class="topo">
+    <img src="logo.png" alt="GeleiaHUB">
+    <div><h1>Ludoteca</h1><p>GeleiaHUB · UFLA</p></div>
+  </header>
+
+  <div id="com-carteirinha" hidden>
+    <a class="cartao verde" href="#" id="ir-carteirinha">
+      <div class="linha">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2.2"/><path d="M5.8 16c.6-1.6 1.8-2.4 3.2-2.4s2.6.8 3.2 2.4M14 10h4M14 13h3"/></svg>
+        <div><h2 id="ola">Minha carteirinha</h2><p>Mostre o QR no balcão para jogar</p></div>
+      </div>
+    </a>
+    <div class="sair"><button type="button" id="sair">Não é você? Sair desta carteirinha</button></div>
+  </div>
+
+  <div id="sem-carteirinha" hidden>
+    <a class="cartao verde" href="?entrar=1">
+      <div class="linha">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2.2"/><path d="M5.8 16c.6-1.6 1.8-2.4 3.2-2.4s2.6.8 3.2 2.4M14 10h4M14 13h3"/></svg>
+        <div><h2>Já tenho cadastro</h2><p>Abrir minha carteirinha</p></div>
+      </div>
+    </a>
+    <a class="cartao" href="?p=cadastro">
+      <div class="linha">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#472099" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="8" r="3.5"/><path d="M3.5 19c.9-3.2 3.4-5 6.5-5 1.4 0 2.6.3 3.6 1M18 13v6M15 16h6"/></svg>
+        <div><h2>Ainda não tenho cadastro</h2><p>Fazer meu cadastro (leva 2 minutos)</p></div>
+      </div>
+    </a>
+  </div>
+
+  <div class="grade">
+    <a class="cartao" href="?p=cardapio">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#472099" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><circle cx="16.5" cy="16.5" r="3.5"/></svg>
+      <h2>Cardápio de jogos</h2><p>Descubra o que jogar</p>
+    </a>
+    <a class="cartao" href="?p=ranking">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#472099" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5v1a3 3 0 0 0 3 3M16 6h3v1a3 3 0 0 1-3 3M12 13v4M8.5 20h7"/></svg>
+      <h2>Ranking do mês</h2><p>Quem mais jogou</p>
+    </a>
+    <a class="cartao largo menta" href="?p=aula">
+      <div class="linha">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l9-4 9 4-9 4z"/><path d="M7 11v4c1.5 1.4 3.2 2 5 2s3.5-.6 5-2v-4M21 9v5"/></svg>
+        <div><h2 style="color:#141414">Jogos para aula</h2><p>Professores: peça jogos para sua turma</p></div>
+      </div>
+    </a>
+  </div>
+
+  <div class="cartao instalar" id="instalar" hidden>
+    <div style="flex:1"><b>Instale o app</b><span id="instalar-t">Fica na tela inicial, como um aplicativo.</span></div>
+    <button type="button" class="btn pequeno" id="instalar-b">Instalar</button>
+  </div>
+
+  <p class="equipe">Equipe da ludoteca: <a href="?p=balcao">Balcão</a> · <a href="?p=telao">Telão</a></p>
+</main>
+
+<!-- Entrar na carteirinha (código por e-mail) -->
+<main class="wrap" id="v-entrar" hidden>
+  <a class="voltar" href="./">&larr; Início</a>
+  <section class="cartao" id="passo1">
+    <h2>Abrir minha carteirinha</h2>
+    <p>Digite o e-mail que você usou no cadastro. Vamos mandar um código de 6 números para ele.</p>
+    <label for="email">E-mail do cadastro</label>
+    <input id="email" type="email" inputmode="email" autocomplete="email" placeholder="seuemail@exemplo.com">
+    <p class="msg" id="msg1" role="status"></p>
+    <div class="acoes"><button class="btn" type="button" id="enviar">Enviar código</button></div>
+    <p class="dica">Cadastrou sem e-mail ou não lembra qual usou? Peça sua carteirinha no balcão.<br>
+      Ainda não tem cadastro? <a href="?p=cadastro">Fazer cadastro</a></p>
+  </section>
+  <section class="cartao" id="passo2" hidden>
+    <h2>Digite o código</h2>
+    <p id="enviado-para">Enviamos um código para o seu e-mail. Confira também a caixa de spam.</p>
+    <label for="codigo">Código de 6 números</label>
+    <input id="codigo" class="codigo" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="••••••">
+    <p class="msg" id="msg2" role="status"></p>
+    <div class="acoes">
+      <button class="btn" type="button" id="entrar">Entrar</button>
+      <button class="btn claro" type="button" id="trocar">Usar outro e-mail</button>
+    </div>
+  </section>
+</main>
+
+<!-- Carregando / erro (telas que vêm do sistema) -->
+<div class="tela" id="v-carregando" hidden><div class="gota" aria-hidden="true"></div><h1>Ludoteca GeleiaHUB</h1><p id="carregando-t">Carregando…</p></div>
+<div class="tela" id="v-falhou" hidden><h1>Não foi possível carregar</h1><p>Confira a internet do celular e tente de novo. Se continuar, avise a equipe no balcão.</p>
+  <button type="button" class="btn" id="denovo">Tentar de novo</button><a href="./" style="color:#fff">Voltar ao início</a></div>
+
 <script>
 (function () {
   var API = 'https://script.google.com/macros/s/AKfycbwhZBi3u2TlezNcpYHPsvEw775zLreTeWlFDtqEME0eCuQlhEqRxQQafIdNLmsiuxlCnQ/exec';
+  var BASE = 'https://geleiahub.github.io/ludoteca/';
+  var $ = function (id) { return document.getElementById(id); };
 
-  // Substitui o google.script.run das telas: chama o Apps Script sem cookies (sem conta Google).
-  function ponte(API) {
+  // ---------- guarda a carteirinha neste aparelho ----------
+  function ler(k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } }
+  function gravar(k, v) { try { if (v) localStorage.setItem(k, v); else localStorage.removeItem(k); } catch (e) {} }
+  function guardarCarteirinha(token, apelido) {
+    if (!token) return;
+    if (token !== ler('ghl_token')) gravar('ghl_apelido', '');
+    gravar('ghl_token', token);
+    if (apelido) gravar('ghl_apelido', apelido);
+  }
+
+  // ---------- chamada ao sistema (Apps Script), sem login do Google ----------
+  function pedir(corpo) {
+    corpo.base = BASE;
+    return fetch(API, { method: 'POST', credentials: 'omit', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(corpo) }).then(function (r) { return r.json(); });
+  }
+  function rodar(fn, args) {
+    return pedir({ acao: 'run', fn: fn, args: args || [] }).then(function (r) {
+      if (!r || !r.ok) throw new Error((r && r.erro) || 'Erro no servidor.');
+      return r.valor;
+    });
+  }
+
+  // Substitui o google.script.run dentro das telas do sistema
+  function ponte(API, BASE) {
     function pedir(corpo) {
+      corpo.base = BASE;
       return fetch(API, { method: 'POST', body: JSON.stringify(corpo), credentials: 'omit',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' } }).then(function (r) { return r.json(); });
+    }
+    function guardar(valor) {
+      try {
+        var m = valor && valor.ok && String(valor.link || '').match(/[?&]t=([^&#]+)/);
+        if (m) { localStorage.setItem('ghl_token', decodeURIComponent(m[1])); if (valor.apelido) localStorage.setItem('ghl_apelido', valor.apelido); }
+      } catch (e) {}
     }
     function chamada(ok, falha, obj) {
       return new Proxy({}, { get: function (_, nome) {
@@ -39,7 +213,7 @@
         return function () {
           var args = Array.prototype.slice.call(arguments);
           pedir({ acao: 'run', fn: nome, args: args }).then(function (r) {
-            if (r && r.ok) { if (ok) ok(r.valor, obj); }
+            if (r && r.ok) { if (nome === 'registrar') guardar(r.valor); if (ok) ok(r.valor, obj); }
             else if (falha) falha(new Error((r && r.erro) || 'Erro no servidor.'), obj);
           }, function () { if (falha) falha(new Error('Sem conexão com o servidor. Tente de novo.'), obj); });
         };
@@ -49,31 +223,131 @@
     window.google.script = { run: chamada(null, null), host: { close: function () {}, setHeight: function () {} } };
   }
 
+  var BOTAO_INICIO = '<a href="./" aria-label="Início do app" style="position:absolute;right:12px;top:calc(12px + env(safe-area-inset-top));' +
+    'z-index:99999;width:42px;height:42px;border-radius:50%;background:#7BFF66;border:3px solid #141414;box-shadow:2px 2px 0 #141414;' +
+    'display:flex;align-items:center;justify-content:center;text-decoration:none">' +
+    '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#141414" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">' +
+    '<path d="M4 11l8-7 8 7"/><path d="M6 10v10h12V10"/></svg></a>';
+
+  if ('serviceWorker' in navigator) { try { navigator.serviceWorker.register('sw.js').catch(function () {}); } catch (e) {} }
+
+  // ---------- rotas ----------
   var params = {};
   new URLSearchParams(location.search).forEach(function (v, k) { params[k] = v; });
+  if (params.t && !params.e) guardarCarteirinha(params.t);
 
-  function carregar(tentativa) {
-    document.getElementById('falhou').hidden = true;
-    document.getElementById('carregando').hidden = false;
-    fetch(API, { method: 'POST', credentials: 'omit', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ acao: 'pagina', params: params }) })
-      .then(function (r) { return r.json(); })
+  function mostrar(id) {
+    ['v-inicio', 'v-entrar', 'v-carregando', 'v-falhou'].forEach(function (v) { $(v).hidden = v !== id; });
+    window.scrollTo(0, 0);
+  }
+
+  // Tela inicial
+  function inicio() {
+    var tok = ler('ghl_token'), ap = ler('ghl_apelido');
+    $('com-carteirinha').hidden = !tok;
+    $('sem-carteirinha').hidden = !!tok;
+    if (tok) {
+      $('ir-carteirinha').href = '?t=' + encodeURIComponent(tok);
+      $('ola').textContent = ap ? 'Carteirinha de ' + ap : 'Minha carteirinha';
+    }
+    $('sair').onclick = function () {
+      gravar('ghl_token', ''); gravar('ghl_apelido', ''); inicio();
+    };
+    instalacao();
+    mostrar('v-inicio');
+    // acorda o servidor enquanto a pessoa escolhe (deixa a próxima tela mais rápida)
+    pedir({ acao: 'acordar' }).catch(function () {});
+  }
+
+  // Instalar o app
+  var pedidoInstalar = null;
+  var instalado = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); pedidoInstalar = e; instalacao(); });
+  function instalacao() {
+    var box = $('instalar'), b = $('instalar-b');
+    if (instalado) { box.hidden = true; return; }
+    var ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    if (pedidoInstalar) {
+      box.hidden = false; b.hidden = false; $('instalar-t').textContent = 'Fica na tela inicial, como um aplicativo.';
+      b.onclick = function () { pedidoInstalar.prompt(); pedidoInstalar.userChoice.then(function () { pedidoInstalar = null; box.hidden = true; }); };
+    } else if (ios) {
+      box.hidden = false; b.hidden = true;
+      $('instalar-t').textContent = 'No iPhone: toque em Compartilhar (o quadrado com a seta) e depois em "Adicionar à Tela de Início".';
+    } else { box.hidden = true; }
+  }
+  window.addEventListener('appinstalled', function () { instalado = true; $('instalar').hidden = true; });
+
+  // Entrar com código
+  function entrar() {
+    var email = '';
+    mostrar('v-entrar');
+    $('passo1').hidden = false; $('passo2').hidden = true;
+    var ultimo = ler('ghl_email'); if (ultimo) $('email').value = ultimo;
+    function msg(el, t, erro) { el.textContent = t || ''; el.className = 'msg' + (erro ? ' erro' : ''); }
+    $('enviar').onclick = function () {
+      email = $('email').value.trim().toLowerCase();
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { msg($('msg1'), 'Confira o e-mail digitado.', true); return; }
+      var b = $('enviar'); b.disabled = true; b.textContent = 'Enviando…'; msg($('msg1'), '');
+      rodar('pedirCodigoApp', [email]).then(function (r) {
+        b.disabled = false; b.textContent = 'Enviar código';
+        if (!r.ok) { msg($('msg1'), r.msg, true); return; }
+        gravar('ghl_email', email);
+        $('enviado-para').textContent = 'Se ' + email + ' estiver cadastrado, o código chega em instantes. Confira também a caixa de spam.';
+        $('passo1').hidden = true; $('passo2').hidden = false; $('codigo').value = ''; msg($('msg2'), '');
+        setTimeout(function () { $('codigo').focus(); }, 50);
+      }, function () { b.disabled = false; b.textContent = 'Enviar código'; msg($('msg1'), 'Sem conexão com o servidor. Tente de novo.', true); });
+    };
+    $('email').onkeydown = function (e) { if (e.key === 'Enter') $('enviar').click(); };
+    $('entrar').onclick = function () {
+      var cod = $('codigo').value.replace(/\D/g, '');
+      if (cod.length !== 6) { msg($('msg2'), 'O código tem 6 números.', true); return; }
+      var b = $('entrar'); b.disabled = true; b.textContent = 'Conferindo…'; msg($('msg2'), '');
+      rodar('entrarComCodigoApp', [email, cod]).then(function (r) {
+        if (!r.ok) { b.disabled = false; b.textContent = 'Entrar'; msg($('msg2'), r.erro, true); return; }
+        guardarCarteirinha(r.token, r.apelido);
+        location.href = '?t=' + encodeURIComponent(r.token);
+      }, function () { b.disabled = false; b.textContent = 'Entrar'; msg($('msg2'), 'Sem conexão com o servidor. Tente de novo.', true); });
+    };
+    $('codigo').oninput = function () { if ($('codigo').value.replace(/\D/g, '').length === 6) $('entrar').click(); };
+    $('trocar').onclick = function () { $('passo2').hidden = true; $('passo1').hidden = false; };
+  }
+
+  // Telas que vêm do sistema
+  function remota(tentativa) {
+    var rotulos = { cardapio: 'Abrindo o cardápio…', ranking: 'Abrindo o ranking…', balcao: 'Abrindo o balcão…', telao: 'Abrindo o telão…',
+                    aula: 'Abrindo o pedido de aula…', cadastro: 'Abrindo o cadastro…' };
+    $('carregando-t').textContent = params.t ? (params.e ? 'Abrindo seu perfil…' : 'Abrindo sua carteirinha…') : params.j ? 'Abrindo o jogo…' : (rotulos[params.p] || 'Carregando…');
+    mostrar('v-carregando');
+    pedir({ acao: 'pagina', params: params })
       .then(function (r) {
         if (!r || !r.ok || !r.html) throw new Error((r && r.erro) || 'vazio');
-        var extra = '<meta name="viewport" content="width=device-width, initial-scale=1">' +
-          '<script>(' + ponte.toString() + ')(' + JSON.stringify(API) + ');<\/script>';
-        var html = /<head[^>]*>/i.test(r.html) ? r.html.replace(/<head[^>]*>/i, function (m) { return m + extra; }) : extra + r.html;
+        var semBotao = params.p === 'telao' || params.p === 'balcao';
+        var cabeca = '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">' +
+          '<meta name="theme-color" content="#472099"><link rel="manifest" href="manifest.webmanifest">' +
+          '<link rel="apple-touch-icon" href="apple-touch-icon.png"><link rel="icon" type="image/png" href="favicon.png">' +
+          '<script>(' + ponte.toString() + ')(' + JSON.stringify(API) + ',' + JSON.stringify(BASE) + ');<\/script>';
+        var html = r.html;
+        if (params.t && /Não encontramos esta carteirinha/.test(html) && ler('ghl_token') === params.t) { gravar('ghl_token', ''); gravar('ghl_apelido', ''); }
+        html = /<head[^>]*>/i.test(html) ? html.replace(/<head[^>]*>/i, function (m) { return m + cabeca; }) : cabeca + html;
+        if (!semBotao) html = /<\/body>/i.test(html) ? html.replace(/<\/body>/i, BOTAO_INICIO + '</body>') : html + BOTAO_INICIO;
         document.open(); document.write(html); document.close();
         if (r.titulo) document.title = r.titulo;
       })
       .catch(function () {
-        if (tentativa < 2) { setTimeout(function () { carregar(tentativa + 1); }, 800); return; }
-        document.getElementById('carregando').hidden = true;
-        document.getElementById('falhou').hidden = false;
+        if (tentativa < 2) { setTimeout(function () { remota(tentativa + 1); }, 800); return; }
+        mostrar('v-falhou');
       });
   }
-  document.getElementById('denovo').onclick = function () { carregar(0); };
-  carregar(0);
+  $('denovo').onclick = function () { remota(0); };
+
+  if (params.minha) {
+    var tk = ler('ghl_token');
+    if (tk) { location.replace('?t=' + encodeURIComponent(tk)); return; }
+    entrar();
+  } else if (params.entrar) entrar();
+  else if (!Object.keys(params).length) inicio();
+  else remota(0);
+
 })();
 </script>
 </body>
